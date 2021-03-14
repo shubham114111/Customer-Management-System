@@ -1,6 +1,6 @@
 from accounts.models import Customer, Order, Product
-from django.shortcuts import render
-
+from django.shortcuts import redirect, render
+from .forms import OrderForm
 def home(request):
     orders = Order.objects.all()
     customers =Customer.objects.all()
@@ -28,3 +28,34 @@ def customer(request, pk):
     context = {'customer':customer, 'orders':orders, 'total_orders':total_orders}
 
     return render(request, 'accounts/customer.html',context)
+
+def createOrder(request):
+    form = OrderForm()
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    context ={'form':form}
+    return render(request, 'accounts/order_form.html', context)
+
+def updateOrder(request, pk):
+    order = Order.objects.get(id=pk)
+    form = OrderForm(instance=order)
+
+    if request.method == 'POST':
+        form = OrderForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+
+    context = {'form':form}
+    return render(request, 'accounts/order_form.html', context)
+
+def deleteOrder(request,pk):
+    order = Order.objects.get(id=pk)
+    if request.method == 'POST':
+        order.delete()
+        return redirect('/')
+    context = {'item':order} 
+    return render(request, 'accounts/delete.html',context)
